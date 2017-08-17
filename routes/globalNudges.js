@@ -15,7 +15,7 @@ router.get('/all', function (req, res, next) {
     if (req.query != null && req.query != {}) {
 
         // Finding Nudges for User
-        var query = Nudge.find({ to: req.query.userId });
+        var query = Nudge.find();
 
         query.select(privateNudgeExtract);
 

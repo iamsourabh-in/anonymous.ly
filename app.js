@@ -11,6 +11,8 @@ var users = require('./routes/users');
 var accounts = require('./routes/accounts');
 var nudges = require('./routes/nudges');
 var globalnudges = require('./routes/globalNudges');
+var friendrequest = require('./routes/friendrequest');
+var processImage = require('./routes/processImage');
 
 var app = express();
 
@@ -37,6 +39,8 @@ app.use('/users', users);
 app.use('/accounts', accounts);
 app.use('/nudges', nudges);
 app.use('/globalnudges', globalnudges);
+app.use('/friendrequest', friendrequest);
+app.use('/processImage', processImage);
 
 
 // catch 404 and forward to error handler

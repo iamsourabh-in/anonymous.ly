@@ -101,7 +101,7 @@ router.post('/login', function (req, res, next) {
         api.unauthorized(req, res);
       }
 
-    })
+    });
 
   }
   else {
