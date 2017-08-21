@@ -8,65 +8,57 @@ var jwt = require('jsonwebtoken');
 var User = require('../models/userModel')
 
 const saltRounds = 10;
+const userExtract = "_id userName emailId mobileNo password";
 
 /* POST accounts/Register */
 router.post('/register', function (req, res, next) {
 
-  // Check if Request is valid..
-  if (req.body != null && req.body != {}) {
+  // Get data from the body for registering User
+  var rq_userName = req.body.userName == null ? "" : req.body.userName;
+  var rq_mobileNo = req.body.mobileNo == null ? "" : req.body.mobileNo;
+  var rq_emailId = req.body.emailId == null ? "" : req.body.emailId;
+  var rq_password = req.body.password == null ? "" : req.body.password;
+  var rq_image = req.body.image == null ? "" : req.body.image;
 
-    // Check if Username or Email exists..
-    User.find({ userName: req.body.userName }, function (err, data) {
-      if (err) api.serverError(req, res, err);
+  if (rq_userName == "" || rq_emailId == "")
+    api.badRequest(req, res, 'Invalid Request');
+  // Check if Username or Email exists..
+  User.find({ userName: rq_userName }, function (err, data) {
+    if (err) api.serverError(req, res, err);
 
-      // Encrypt Data any which
-      bcrypt.genSalt(saltRounds, function (err, salt) {
-        bcrypt.hash(req.body.password, salt, function (err, hash) {
-          // Store hash in your password DB. 
-
-          // If User found (Note : Length to check where find is user not findOne)
-          if (data.length) {
-
-            // Return Bad Request
-            api.badRequest(req, res, 'Username already Exists');
-
-          }
-          else {
-
-            // Create new user against schema
-            var newUser = new User({
-              userName: req.body.userName,
-              password: hash,
-              mobileNo: req.body.mobileNo,
-              emailId: req.body.emailId,
-              image: req.body.image,
-              registered: new Date()
-            });
-
-
-            // Save new User
-            newUser.save(function (err, data) {
-              if (err) {
-                api.serverError(req, res, err);
-              } else {
-                api.ok(req, res, data.toJSON());
-              }
-            });
-
-
-          }
-
-        });
-
+    // Encrypt Data any which
+    bcrypt.genSalt(saltRounds, function (err, salt) {
+      // Store hash in your password DB. 
+      bcrypt.hash(req.body.password, salt, function (err, hash) {
+        // If User found (Note : Length to check where find is user not findOne)
+        if (data.length) {
+          // Return Bad Request
+          api.badRequest(req, res, 'Username already Exists');
+        }
+        else {
+          // Create new user against schema
+          var newUser = new User({
+            userName: rq_userName,
+            password: hash,
+            mobileNo: rq_mobileNo,
+            emailId: rq_emailId,
+            image: rq_image,
+            registered: new Date()
+          });
+          // Save new User
+          newUser.save(function (err, data) {
+            if (err) {
+              api.serverError(req, res, err);
+            } else {
+              api.ok(req, res, data.toJSON());
+            }
+          });
+        }
       });
-
-
     });
+  });
 
-  }
-  else {
 
-  }
 
 });
 
@@ -74,28 +66,39 @@ router.post('/register', function (req, res, next) {
 /* POST accounts/login */
 router.post('/login', function (req, res, next) {
 
+  var rq_emailId = req.body.emailId == null ? "" : req.body.emailId;
+  var rq_password = req.body.password == null ? "" : req.body.password;
+
+  console.log(req.body.rq_password);
   // Check if Request is valid
-  if (req.body != null && req.body != {}) {
+  if (rq_emailId != '') {
 
     //Check if User exists
-    User.findOne({ $or: [{ 'userName': req.body.userName }, { 'email': req.body.userName }] }, function (err, data) {
+    User.find({ emailId: rq_emailId }, function (err, data) {
       if (err) return api.serverError(req, res, err);
-
+      console.log(data);
       // If User found Login
-      if (data != null) {
+      if (data.length) {
 
-        // Load hash from your password DB. 
-        bcrypt.compare(req.body.password, data.password, function (err, match) {
-          if (match) {
+        var user = {
+          details: data[0],
+          token: ""
+        };
+        api.ok(req, res, user);
+        // // Load hash from your password DB. 
+        // bcrypt.compare(rq_password, data.password, function (err, match) {
 
-            var token = jwt.sign(data, 'shhhhh');
+        //   if (match) {
 
-            api.ok(req, res, token);
-          }
-          else {
-            api.unauthorized(req, res);
-          }
-        });
+        //     var token = jwt.sign(data, 'shhhhh');
+
+        //     user.token = token;
+        //     api.ok(req, res, user);
+        //   }
+        //   else {
+        //     api.unauthorized(req, res);
+        //   }
+        // });
       }
       else {
         api.unauthorized(req, res);
@@ -105,7 +108,7 @@ router.post('/login', function (req, res, next) {
 
   }
   else {
-
+    api.badRequest(req, res, 'asd');
   }
 
 });

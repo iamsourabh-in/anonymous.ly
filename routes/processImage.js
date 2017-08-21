@@ -7,37 +7,48 @@ var api = require('express-api-helper');
 var multer = require('multer');
 var upload = multer({ dest: 'uploads/' });
 var fs = require('fs');
-
+var gm = require('gm');
 var uploadType = upload.array('foo', 10);
 
 
 /* GET users listing. */
-router.get('/new', function (req, res, next) {
-    var imageCaption = 'Sourbabh';
-    var fileName = 'baseimage\\ccd.jpg';
-    var loadedImage;
+router.post('/new', function (req, res, next) {
+    var rq_userId = req.body.userId == null ? "" : req.body.userId;
+    var rq_imageName = req.body.imageName == null ? "" : req.body.imageName;
+    var rq_text = req.body.text == null ? "" : req.body.text;
+    var rq_effects = req.body.effects == null ? "" : req.body.effects;
+    var effects = rq_effects.split(',');
 
-    // open a file called "lenna.png"
-    Jimp.read(fileName, function (err, lenna) {
-        if (err) throw err;
-        lenna.resize(256, 256)            // resize
-            .quality(100)                 // set JPEG quality
-            .greyscale()                 // set greyscale
-            .write("ccd-bw.jpg"); // save
-    });
+    var imageCaption = rq_text;
+    var fileName = 'public\\images\\baseimage\\' + rq_imageName;
+    var loadedImage;
 
     Jimp.read(fileName)
         .then(function (image) {
-            loadedImage = image;
-            return Jimp.loadFont(Jimp.FONT_SANS_16_BLACK);
+            loadedImage = image.resize(1280, 720).quality(100);
+            return Jimp.loadFont(Jimp.FONT_SANS_128_WHITE);
         })
         .then(function (font) {
-            loadedImage.print(font, 20, 20, imageCaption).greyscale().posterize(5)
-                .write(fileName + 'cd.jpg');
+            console.log(fileName);
+            loadedImage.print(font, 120, 120, imageCaption)
+            if (effects.indexOf('grayscale') > -1)
+                loadedImage.grayscale();
+            if (effects.indexOf('invert') > -1)
+                loadedImage.invert();
+            if (effects.indexOf('dither565') > -1)
+                loadedImage.dither565();
+            if (effects.indexOf('posterize') > -1)
+                loadedImage.posterize(1);
+            if (effects.indexOf('sepia') > -1)
+                loadedImage.sepia();
+            loadedImage.write(fileName + new Date().toDateString() + '.jpg');
+            api.ok(req, res, 'created');
         })
         .catch(function (err) {
             console.error(err);
         });
+
+
 
 });
 

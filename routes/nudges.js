@@ -11,13 +11,14 @@ const privateNudgeExtract = "_id msg imageIt to requests reactions seeking revea
 
 
 /* GET  nudges/all */
-router.get('/all', function (req, res, next) {
-
+router.get('/all/:userId', function (req, res, next) {
+    var rq_userId = req.params.userId == null ? "" : req.params.userId;
+    console.log(rq_userId);
     // Check if Request is valid..
-    if (req.query != null && req.query != {}) {
+    if (rq_userId != '') {
 
         // Finding Nudges for User
-        var query = Nudge.find({ to: req.query.userId });
+        var query = Nudge.find({ to: rq_userId });
 
         query.select(privateNudgeExtract);
 
@@ -97,7 +98,7 @@ router.post('/add', function (req, res, next) {
             seeking: false,
             revealed: false,
             removed: false
-        }); 
+        });
 
         // Save new Nudge
         newNudge.save(function (err, data) {
